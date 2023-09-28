@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to the Sales Data Analyzer!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            font-size: 16px;
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+        }
+
+        input[type="submit"] {
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        p {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            text-align: center;
+        }
+        ol {
+            max-width: 600px;
+            margin: 0 auto;
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 0 auto;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        h1, h2 {
+            color: #333;
+        }
+
+        .analysis-block {
+            display: flex;
+            margin-bottom: 20px;
+            background-color:whitesmoke;
+
+        }
+        .analysis-block1 {
+            margin-bottom: 20px;
+            background-color:whitesmoke;
+            padding: 100px;
+        }
+
+        .analysis-block .chart-container {
+            flex: 1;
+            margin-right: 20px;
+            padding: 40px;
+            background-color: whitesmoke;
+        }
+
+        .analysis-block .data-list {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .data-list ol {
+            margin: 0;
+            padding: 0;
+            list-style-type: decimal;
+        }
+
+        .data-list ol li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Sales Data Analyzer!</h1>
+    <p>This application helps companies gain valuable insights from their sales data. When you submit your data, we provide you with detailed plots and analyses to enhance your business strategies.</p>
+
+    <h2>What We Offer</h2>
+    <ol>
+        <li>Sales Analysis by Hour: Identify peak sales hours for effective scheduling of advertisements and promotions.</li>
+        <li>Most Profitable Products: Discover which products contribute the most to your profits.</li>
+        <li>Best-Selling Products: Understand customer preferences and optimize inventory and marketing efforts.</li>
+        <li>Top Products by Category: Tailor marketing strategies for each product category.</li>
+        <li>Discover the most frequently paired products that customers buy together</li>
+        <li>Monthly Sales Total</li>
+        <li>Sales Totals by City</li>
+    </ol>
+
+    <h2>How to Use</h2>
+    <ol>
+        <li>Please ensure that the dataset includes the following columns, and maintain the column names as follows: Order ID, Product, Quantity Ordered, Price Each, Order Date, Purchase Address, and Category.</li>
+        <li>Upload CSV file and click on SUBMIT</li>
+        <li>Receive Customized Analysis: Once you submit your data, our application will generate interactive plots and analyses tailored to your sales information.</li>
+        <li>Gain Valuable Insights: Explore the provided visualizations to uncover valuable insights about your sales performance.</li>
+    </ol>
+
+    <form action="http://localhost:5000/analyze" method="post" enctype="multipart/form-data">
+        <input type="file" name="csv_file" accept=".csv">
+        <input type="submit" value="Upload">
+    </form>
+    <br>
+    <br>
+    <br>
+    <h1 style="text-align: center;">Analysis Results</h1>
+
+    <div class="analysis-block">
+        <div class="chart-container">
+            {{ plot|safe }} 
+        </div>
+        <div class="data-list">
+            <h2 style="text-align: center;">Month</h2>
+            <ol start="0">
+                {% for q in month %}
+                    <li>{{q}}</li> 
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+    <div class="analysis-block">
+        <div class="chart-container">
+            {{ plot2|safe }}
+        </div>
+        <div class="data-list">
+            <h2>Total Sales as per the City</h2>
+            <ol start="0">
+                {% for q in product_list %}
+                    <li>{{q}}</li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+
+<div class="analysis-block1">
+    <h2 style="text-align: center;">Total Number of Orders according to hours</h2>
+    {{ plot3|safe }}
+</div>
+
+
+<div class="analysis-block">
+    <div class="chart-container">
+        {{ plot4|safe }}
+    </div>
+    <div class="data-list">
+        <h2>Products sold the most by quantity</h2>
+        <ol start="0">
+            {% for q in qo %}
+                <li>{{q}}</li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+<div class="analysis-block">
+    <div class="chart-container">
+        {{ plot5|safe }}
+    </div>
+    <div class="data-list">
+        <h2>Products sold the most</h2>
+        <ol start="0">
+            {% for q in qo %}
+                <li>{{q}}</li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+<div class="analysis-block1 chart-container data-list">
+    <h2>Products that goes together goes together</h2>
+    <ol start="1">
+        {% for q in nums %}
+            <li>{{q}}</li>
+        {% endfor %}
+    </ol>
+</div>
+
+<div class="analysis-block">
+    <div class="chart-container">
+        {{ plot6|safe }}
+    </div>
+    <div class="data-list">
+        <h2>Products By profit</h2>
+        <ol start="0">
+            {% for q in top_products %}
+                <li>{{q}}</li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+
+<div class="analysis-block1 chart-container">
+    <h2 style="text-align: center;">Total Sales as per the Category</h2>
+    {{ plot7|safe }}
+</div> 
+</body>
+</html>
+
