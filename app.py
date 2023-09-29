@@ -1,22 +1,25 @@
 from flask import Flask, render_template, request
-import pandas as pd
-import matplotlib.pyplot as plt
-import mpld3
-from statsmodels.tsa.holtwinters import ExponentialSmoothing
-from prophet import Prophet
+
+
 app = Flask(__name__)
 @app.route('/')
 def index():
     return render_template('index.html')
+@app.route('/ana', methods=['POST'])
+def ana():
+    return render_template('result.html')
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    import os
     import pandas as pd
+    import mpld3
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
     uploaded_file = request.files['csv_file']
     if uploaded_file.filename != '':
         all_data = pd.read_csv(uploaded_file)
     all_data.head()
-    nan_df = all_data[all_data.isna().any(axis=1)]
     all_data = all_data.dropna(how='all')
     all_data.head()
     all_data = all_data[all_data['Order Date'].str[0:2]!='Or']
@@ -35,7 +38,6 @@ def analyze():
     all_data.head()
     all_data['Sales'] = all_data['Quantity Ordered'].astype('int') * all_data['Price Each'].astype('float')
     all_data.groupby(['Month']).sum()
-    import matplotlib.pyplot as plt
     months = range(1,13)
     plt.title('Total Sales as per month')
     plt.bar(months,all_data.groupby(['Month']).sum()['Sales'])
@@ -64,20 +66,8 @@ def analyze():
     plt.title('Number of Orders at Each Hour')
     plt.xticks(rotation=0)
     plt.grid(axis='y', alpha=0.75)
-    plt.savefig(r'C:\Users\eyoge\Downloads\Sales-Analysis-main\bar_plot2.png')
     html_fig3 = mpld3.fig_to_html(plt.gcf())
-    df = all_data[all_data['Order ID'].duplicated(keep=False)]
-    df.loc[:, 'Grouped'] = df.groupby('Order ID')['Product'].transform(lambda x: ','.join(x))
-    df2 = df[['Order ID', 'Grouped']].drop_duplicates()
-    from itertools import combinations
-    from collections import Counter
-    count = Counter()
-    nums=[]
-    for row in df2['Grouped']:
-        row_list = row.split(',')
-        count.update(Counter(combinations(row_list, 2)))
-    for key,value in count.most_common(10):
-        nums.append(key[0]+" - "+key[1])
+
     product_group = all_data.groupby('Product')
     all_data['Order Date'] = pd.to_datetime(all_data['Order Date'], format='%m/%d/%y %H:%M')
     all_data['Quantity Ordered'] = pd.to_numeric(all_data['Quantity Ordered'], errors='coerce')
@@ -90,7 +80,7 @@ def analyze():
     html_fig4 = mpld3.fig_to_html(plt.gcf())
     qo=keys
     all_data['Quantity Ordered'] = pd.to_numeric(all_data['Quantity Ordered'])
-    all_data['Price Each'] = pd.to_numeric(all_data['Price Each'])    
+    all_data['Price Each'] = pd.to_numeric(all_data['Price Each'])
     all_data['Profit'] = all_data['Quantity Ordered'] * all_data['Price Each']
     product_profit = all_data.groupby('Product')['Profit'].sum()
     top_10_products = product_profit.nlargest(10)
@@ -104,30 +94,25 @@ def analyze():
     html_fig6 = mpld3.fig_to_html(plt.gcf())
     all_data['Quantity Ordered'] = pd.to_numeric(all_data['Quantity Ordered'])
     category_sales = all_data.groupby('Category')['Quantity Ordered'].sum()
-    most_selling_category = category_sales.idxmax()
     plt.figure(figsize=(10, 6))
     plt.pie(category_sales, labels=category_sales.index, autopct='%1.1f%%', startangle=140, colors=['skyblue', 'lightcoral', 'lightgreen'])
     plt.title('Most Selling Category')
-    plot7 = mpld3.fig_to_html(plt.gcf())    
-    import pandas as pd
-    import matplotlib.pyplot as plt
-    try:
-        prices = all_data.groupby('Product')['Price Each'].mean()
-        fig, ax1 = plt.subplots()
-        ax2 = ax1.twinx()
-        ax1.bar(keys, quantity_ordered, color='g', label='Quantity Ordered')
-        ax1.set_xlabel('Product Name')
-        ax1.set_ylabel('Quantity Ordered', color='g')
-        ax2.plot(keys, prices, color='b', label='Price ($)')
-        ax2.set_ylabel('Price ($)', color='b')
-        ax1.set_xticks(range(len(keys)))
-        ax1.set_xticklabels(keys, rotation='vertical', fontsize=8)
-        ax1.legend(loc='upper left')
-        ax2.legend(loc='upper right')
-        html_fig5 = mpld3.fig_to_html(plt.gcf())
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    return render_template('index.html', plot=html_fig1,plot2=html_fig2, plot3=html_fig3,plot4=html_fig4,plot5=html_fig5,plot6=html_fig6,plot7=plot7,product_list=product_list,qo=qo,nums=nums,month=["January","February","March","April","May","June","July","August","September","October","November","December"],top_products=top_products)
+    plot7 = mpld3.fig_to_html(plt.gcf())
+
+    prices = all_data.groupby('Product')['Price Each'].mean()
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+    ax1.bar(keys, quantity_ordered, color='g', label='Quantity Ordered')
+    ax1.set_xlabel('Product Name')
+    ax1.set_ylabel('Quantity Ordered', color='g')
+    ax2.plot(keys, prices, color='b', label='Price ($)')
+    ax2.set_ylabel('Price ($)', color='b')
+    ax1.set_xticks(range(len(keys)))
+    ax1.set_xticklabels(keys, rotation='vertical', fontsize=8)
+    ax1.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+    html_fig5 = mpld3.fig_to_html(plt.gcf())
+    return render_template('result.html', plot=html_fig1,plot2=html_fig2, plot3=html_fig3,plot4=html_fig4,plot5=html_fig5,plot6=html_fig6,plot7=plot7,product_list=product_list,qo=qo,month=["January","February","March","April","May","June","July","August","September","October","November","December"],top_products=top_products)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
